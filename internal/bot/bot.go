@@ -5,6 +5,8 @@ import (
 
 	"github.com/pscompsci/bot/internal/exchange"
 	"github.com/pscompsci/eventbus"
+
+	_ "github.com/lib/pq"
 )
 
 type bot struct {
@@ -13,13 +15,13 @@ type bot struct {
 	exchange *exchange.Kraken
 }
 
-func New(cfg Config) *bot {
+func New(cfg Config) (*bot, error) {
 	bus := *eventbus.New()
 	return &bot{
 		config:   cfg,
 		exchange: exchange.NewKraken(cfg.ApiKey, cfg.SecretKey, &bus),
 		bus:      &bus,
-	}
+	}, nil
 }
 
 func (b *bot) Run() {

@@ -1,15 +1,11 @@
 package exchange
 
 import (
+	"github.com/pscompsci/bot/pkg/models"
 	"github.com/pscompsci/eventbus"
 
 	ws "github.com/aopoltorzhicky/go_kraken/websocket"
 )
-
-type candle struct {
-	pair string
-	data ws.Candle
-}
 
 type Kraken struct {
 	apiKey    string
@@ -37,6 +33,17 @@ func (k *Kraken) CollectCandles(pairs []string, interval int64) error {
 
 	for {
 		update := <-kraken.Listen()
-		k.bus.Publish("kraken", candle{pair: update.Pair, data: update.Data.(ws.Candle)})
+		switch message := update.Data.(type) {
+		case ws.Candle:
+			k.bus.Publish("kraken", models.Candle{
+				Pair:    update.Pair,
+				EndTime: message.EndTime,
+				Open:    message.Open,
+				High:    message.High,
+				Low:     message.Low,
+				Close:   message.Close,
+				Volume:  message.Volume,
+			})
+		}
 	}
 }

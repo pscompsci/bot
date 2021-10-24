@@ -1,20 +1,34 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
 
 	"github.com/pscompsci/bot/internal/bot"
 )
 
 func main() {
-	cfg := bot.Config{}
+	cfg := loadConfiguration("settings.json")
 
-	flag.StringVar(&cfg.ApiKey, "apikey", "", "Kraken API Key")
-	flag.StringVar(&cfg.SecretKey, "secret", "", "Kraken Secret Key")
-	flag.Parse()
-
-	cfg.Pairs = []string{"ADA/USD", "XBT/USD", "ETH/USD", "LTC/USD", "DOT/USD"}
-
-	bot := bot.New(cfg)
+	bot, err := bot.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	bot.Run()
+}
+
+func loadConfiguration(file string) bot.Config {
+	var config bot.Config
+	configFile, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer configFile.Close()
+
+	jsonParser := json.NewDecoder(configFile)
+	jsonParser.Decode(&config)
+
+	return config
 }
